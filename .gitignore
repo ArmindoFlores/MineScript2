@@ -1,0 +1,10 @@
+.antlr/
+__pycache__/
+build/
+dist/
+MineScript.interp
+MineScript.tokens
+MineScriptLexer.py
+MineScriptLexer.tokens
+MineScriptParser.py
+MineScriptVisitor.py

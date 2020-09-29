@@ -1,6 +1,8 @@
+from exceptions import MappingException
 from logs import Logger
 from MineScriptParser import MineScriptParser
 from MineScriptVisitor import MineScriptVisitor
+
 
 class MappingVisitor(MineScriptVisitor):
     def __init__(self, name, filename):
@@ -36,13 +38,18 @@ class MappingVisitor(MineScriptVisitor):
         for functionArg in ctx.functionArg():
             arg_type = functionArg.type_.text
             arg_name = functionArg.WORD().getText()
+            if len(list(filter(lambda i: i[0] == arg_name, self.igfunctions[name]["args"]))) != 0:
+                line = functionArg.start.line
+                char = functionArg.start.column
+                self.logger.log(f"Multiple definitions of variable '{arg_name}'", line, char, "error")
+                raise MappingException()
             self.igfunctions[name]["args"].append((arg_name, arg_type))
             
         if (name == "load" or name == "tick") and len(self.igfunctions[name]["args"]) != 0:
             line = ctx.functionArg(0).start.line
             char = ctx.functionArg(0).start.column
             self.logger.log(f"The built-in function '{name}' takes no args", line, char, "error")
-            raise Exception()
+            raise MappingException()
 
         self.igfunc = name
         self.visitChildren(ctx)            

@@ -5,10 +5,11 @@ import shutil
 
 from antlr4 import CommonTokenStream, FileStream
 
+from exceptions import CompileTimeException, MappingException
+from MappingVisitor import MappingVisitor
 from MineScriptLexer import MineScriptLexer
 from MineScriptParser import MineScriptParser
 from Visitor import Visitor
-from MappingVisitor import MappingVisitor
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -123,13 +124,17 @@ def visit(name, file):
     mapvisitor = MappingVisitor(name, file)
     try:
         mapvisitor.visit(tree)
-    except Exception:
+    except MappingException:
         return None
     visitor = Visitor(name, file)
     visitor.igfunctions = mapvisitor.igfunctions
     visitor.igmemory = mapvisitor.igmemory
-    visitor.visit(tree)
+    try:
+        visitor.visit(tree)
+    except CompileTimeException:
+        return None
     print(visitor.tempvars)
+    print(visitor.memory)
     return visitor
 
 def main(name, file):
@@ -143,6 +148,8 @@ def main(name, file):
 
     create_structure(name, "Generated using MineScript 2.0", path)
     visitor = visit(name, file)
+    if visitor is None:
+        return
     
     assemble_pack(name, visitor, path)
     shutil.make_archive(os.path.join(distpath, name), 'zip', os.path.join(path, name))

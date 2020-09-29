@@ -25,6 +25,9 @@ expr
                         | variableDecrementPre  #ignore
                         | variableIncrementPos  #ignore
                         | variableIncrementPre  #ignore
+                        | K_MC '(' expr ')'         #mcCommand
+                        | K_RESULT '(' expr ')'     #resultCommand
+                        | K_SUCCESS '(' expr ')'    #successCommand
                         | functionCall          #ignore
                         | cast                  #ignore
                         | expr type_=(OP_EQ|OP_GE|OP_LE|OP_GT|OP_LT|OP_DIF) expr        #variableComparison
@@ -36,15 +39,15 @@ expr
 
 cast                    : '(' type_=(K_INT | K_CHAR) ')' expr;
 variableDeclaration     : type_=(K_INT | K_CHAR) variableAssignement (COMMA variableAssignement)*;
-variableAssignement     : WORD arr? (OP_ASSIGN expr)?;
+variableAssignement     : PREFIX? WORD arr? (OP_ASSIGN expr)?;
 functionDeclaration     : type_=(K_INT | K_CHAR | K_VOID) WORD '(' (functionArg (COMMA functionArg)*)? ')' stat;
-functionArg             : type_=(K_INT | K_CHAR) WORD arr?;
+functionArg             : type_=(K_INT | K_CHAR) PREFIX? WORD arr?;
 printStatement          : K_PRINT '(' (expr (COMMA expr)*)? ')' SEP;
-functionCall            : WORD '(' (expr (COMMA expr)*)? ')';
-variableIncrementPre    : OP_INC WORD;
-variableIncrementPos    : WORD OP_INC;
-variableDecrementPre    : OP_DEC WORD;
-variableDecrementPos    : WORD OP_DEC;
+functionCall            : PREFIX? WORD '(' (expr (COMMA expr)*)? ')';
+variableIncrementPre    : OP_INC PREFIX? WORD;
+variableIncrementPos    : PREFIX? WORD OP_INC;
+variableDecrementPre    : OP_DEC PREFIX? WORD;
+variableDecrementPos    : PREFIX? WORD OP_DEC;
 literal                 : STRING | NUMBER | CHAR;
 array                   : '{' (expr (COMMA expr)*)? '}';
 arr                     : '[' (expr)? ']';
@@ -59,7 +62,7 @@ whileStatement          : K_WHILE '(' expr ')' stat;
 /* Lexer rules */
 
 STRING                  : '"' (~('"' | '\n') | '\\"')* '"';
-SUFFIX                  : '$';
+PREFIX                  : '$';
 K_VOID                  : 'void';
 K_INT                   : 'int';
 K_CHAR                  : 'char';
@@ -69,6 +72,9 @@ K_BREAK                 : 'break';
 K_IF                    : 'if';
 K_ELSE                  : 'else';
 K_PRINT                 : 'print';
+K_MC                    : 'mc';
+K_RESULT                : 'result';
+K_SUCCESS               : 'success';
 K_RETURN                : 'return';
 OP_INC                  : '++';
 OP_DEC                  : '--';
